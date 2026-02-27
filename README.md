@@ -11,7 +11,7 @@ Add the plugin to your `opencode.json`:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-event-push"]
+  "plugin": ["@dragonwize/opencode-event-push"]
 }
 ```
 
@@ -26,8 +26,8 @@ OpenCode installs the package automatically at startup using Bun. The package la
 The plugin reads its config from `event-push.json` in the **same directory as the installed plugin package** (i.e. next to `package.json`). Copy the bundled example and edit it:
 
 ```sh
-cp ~/.cache/opencode/node_modules/opencode-event-push/event-push.example.json \
-   ~/.cache/opencode/node_modules/opencode-event-push/event-push.json
+cp ~/.cache/opencode/node_modules/@dragonwize/opencode-event-push/event-push.example.json \
+   ~/.cache/opencode/node_modules/@dragonwize/opencode-event-push/event-push.json
 ```
 
 Then open `event-push.json` and replace the placeholder URLs, events, and credentials.
