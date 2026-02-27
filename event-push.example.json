@@ -1,0 +1,30 @@
+{
+  "targets": [
+    { "url": "http://localhost:34567" },
+    {
+      "url": "https://webhook.example.com/opencode",
+      "events": [
+        "session.created",
+        "session.idle",
+        "session.error"
+      ],
+      "retry": {
+        "attempts": 3,
+        "delayMs": 500
+      },
+      "headers": {
+        "Authorization": "Bearer your-secret-token"
+      }
+    },
+    {
+      "url": "https://logging.example.com/ingest",
+      "events": [
+        "tool.execute.after",
+        "file.edited"
+      ],
+      "headers": {
+        "X-API-Key": "your-api-key"
+      }
+    }
+  ]
+}
