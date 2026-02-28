@@ -202,13 +202,13 @@ describe("loadConfig()", () => {
     "/home/testuser",
     ".config",
     "opencode",
-    "event-push.json",
+    "opencode-event-push.json",
   )
 
   it("merges global and project targets, global first", () => {
     mockFiles({
       [globalPath]: JSON.stringify({ targets: [globalTarget] }),
-      "/proj/event-push.json": JSON.stringify({ targets: [projectTarget] }),
+      "/proj/opencode-event-push.json": JSON.stringify({ targets: [projectTarget] }),
     })
 
     expect(loadConfig("/proj")).toEqual({
@@ -218,7 +218,7 @@ describe("loadConfig()", () => {
 
   it("returns only project targets when global config is absent", () => {
     mockFiles({
-      "/proj/event-push.json": JSON.stringify({ targets: [projectTarget] }),
+      "/proj/opencode-event-push.json": JSON.stringify({ targets: [projectTarget] }),
     })
 
     expect(loadConfig("/proj")).toEqual({ targets: [projectTarget] })
@@ -423,7 +423,7 @@ describe("EventPushPlugin", () => {
 
   it("returns an event hook when at least one target is configured", async () => {
     readFileSyncSpy.mockImplementation((p: unknown) => {
-      if ((p as string).endsWith("event-push.json")) {
+      if ((p as string).endsWith("opencode-event-push.json")) {
         return JSON.stringify({ targets: [{ url: "https://example.com" }] })
       }
       throw Object.assign(new Error("ENOENT"), { code: "ENOENT" })

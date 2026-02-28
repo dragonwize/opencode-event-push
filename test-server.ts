@@ -86,5 +86,5 @@ const server = Bun.serve({
 console.log(`${c.bold}${c.green}opencode-event-push test server${c.reset}`)
 console.log(`${c.dim}Listening on${c.reset} ${c.cyan}http://localhost:${server.port}${c.reset}`)
 console.log(`${c.dim}Waiting for events…${c.reset}\n`)
-console.log(`Point a target at this URL in your event-push.json:`)
+console.log(`Point a target at this URL in your opencode-event-push.json:`)
 console.log(`  ${c.yellow}"url": "http://localhost:${server.port}"${c.reset}\n`)

@@ -1,4 +1,4 @@
 node_modules/
 bun.lock
-event-push.json
+opencode-event-push.json
 package-lock.json

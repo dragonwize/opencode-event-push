@@ -23,12 +23,12 @@ OpenCode installs the package automatically at startup using Bun. The package la
 
 ## Configuration
 
-The plugin reads `event-push.json` from two locations and **merges** them, mirroring how OpenCode itself handles its own config files:
+The plugin reads `opencode-event-push.json` from two locations and **merges** them, mirroring how OpenCode itself handles its own config files:
 
 | Location | Purpose |
 |---|---|
-| `~/.config/opencode/event-push.json` | Global config — applies to every project |
-| `event-push.json` in the project root | Project config — applies only to that project |
+| `~/.config/opencode/opencode-event-push.json` | Global config — applies to every project |
+| `opencode-event-push.json` in the project root | Project config — applies only to that project |
 
 Both files are optional. When both exist their `targets` arrays are concatenated — global targets come first, project targets are appended after them. This follows OpenCode's "merge, not replace" convention.
 
@@ -36,7 +36,7 @@ To get started with the global config, copy the bundled example and edit it:
 
 ```sh
 cp ~/.cache/opencode/node_modules/@dragonwize/opencode-event-push/event-push.example.json \
-   ~/.config/opencode/event-push.json
+   ~/.config/opencode/opencode-event-push.json
 ```
 
 Then open the file and replace the placeholder URLs, events, and credentials.
@@ -163,7 +163,7 @@ bun run test-server.ts 9000
 
 ### Point the plugin at it
 
-Add a target to your `~/.config/opencode/event-push.json` (the catch-all form with no `events` filter is most useful for testing):
+Add a target to your `~/.config/opencode/opencode-event-push.json` (the catch-all form with no `events` filter is most useful for testing):
 
 ```json
 {
@@ -212,7 +212,7 @@ On a failed request the plugin retries with exponential backoff (500ms, 1000ms, 
 
 ## Local plugin usage
 
-If you prefer to use this as a local file plugin rather than via npm, drop `src/index.ts` into `.opencode/plugins/`. The global config is still read from `~/.config/opencode/event-push.json` and the project config from `event-push.json` in the project root.
+If you prefer to use this as a local file plugin rather than via npm, drop `src/index.ts` into `.opencode/plugins/`. The global config is still read from `~/.config/opencode/opencode-event-push.json` and the project config from `opencode-event-push.json` in the project root.
 
 ## License
 

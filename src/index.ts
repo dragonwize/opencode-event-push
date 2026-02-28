@@ -60,7 +60,7 @@ export function interpolate<T>(value: T): T {
 // ── Config loading ────────────────────────────────────────────────────────────
 
 /**
- * Read and parse a single event-push.json file.
+ * Read and parse a single opencode-event-push.json file.
  * Returns `null` when the file does not exist.
  * Returns `{ targets: [] }` on any other error or malformed content.
  */
@@ -91,8 +91,8 @@ export function readConfigFile(filePath: string): PluginConfig | null {
  * Load and merge plugin configuration from all supported locations.
  *
  * Config is read from two places (mirroring OpenCode's own precedence model):
- *   1. Global:  ~/.config/opencode/event-push.json
- *   2. Project: <directory>/event-push.json  (the session's working directory)
+ *   1. Global:  ~/.config/opencode/opencode-event-push.json
+ *   2. Project: <directory>/opencode-event-push.json  (the session's working directory)
  *
  * Both files are optional. When both exist their `targets` arrays are
  * concatenated — project targets are appended after global targets.
@@ -101,10 +101,10 @@ export function readConfigFile(filePath: string): PluginConfig | null {
  * Both files support `{env:VAR_NAME}` substitution in any string value.
  */
 export function loadConfig(directory?: string): PluginConfig {
-  const globalPath = join(homedir(), ".config", "opencode", "event-push.json")
+  const globalPath = join(homedir(), ".config", "opencode", "opencode-event-push.json")
   const globalConfig = readConfigFile(globalPath)
 
-  const projectPath = directory ? join(directory, "event-push.json") : null
+  const projectPath = directory ? join(directory, "opencode-event-push.json") : null
   const projectConfig = projectPath ? readConfigFile(projectPath) : null
 
   const targets = [
