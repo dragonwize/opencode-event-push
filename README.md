@@ -23,14 +23,23 @@ OpenCode installs the package automatically at startup using Bun. The package la
 
 ## Configuration
 
-The plugin reads its config from `event-push.json` in the **same directory as the installed plugin package** (i.e. next to `package.json`). Copy the bundled example and edit it:
+The plugin reads `event-push.json` from two locations and **merges** them, mirroring how OpenCode itself handles its own config files:
+
+| Location | Purpose |
+|---|---|
+| `~/.config/opencode/event-push.json` | Global config — applies to every project |
+| `event-push.json` in the project root | Project config — applies only to that project |
+
+Both files are optional. When both exist their `targets` arrays are concatenated — global targets come first, project targets are appended after them. This follows OpenCode's "merge, not replace" convention.
+
+To get started with the global config, copy the bundled example and edit it:
 
 ```sh
 cp ~/.cache/opencode/node_modules/@dragonwize/opencode-event-push/event-push.example.json \
-   ~/.cache/opencode/node_modules/@dragonwize/opencode-event-push/event-push.json
+   ~/.config/opencode/event-push.json
 ```
 
-Then open `event-push.json` and replace the placeholder URLs, events, and credentials.
+Then open the file and replace the placeholder URLs, events, and credentials.
 
 ### Config schema
 
@@ -45,7 +54,7 @@ Then open `event-push.json` and replace the placeholder URLs, events, and creden
         "delayMs": 500
       },
       "headers": {
-        "Authorization": "Bearer your-token"
+        "Authorization": "Bearer {env:MY_WEBHOOK_TOKEN}"
       }
     }
   ]
@@ -63,6 +72,26 @@ An array of target objects. Each target is independent — it gets its own URL, 
 | `retry.attempts` | no | `3` | Maximum number of attempts (including the first try) |
 | `retry.delayMs` | no | `500` | Base delay in ms between retries. Uses exponential backoff: `delayMs * 2^attempt` |
 | `headers` | no | `{}` | Extra HTTP headers sent with every request to this target |
+
+### Environment variable substitution
+
+Any string value in either config file supports `{env:VAR_NAME}` substitution, matching the syntax OpenCode uses in its own `opencode.json`. The variable is replaced at startup with the value of the corresponding environment variable. If the variable is not set it is replaced with an empty string.
+
+```json
+{
+  "targets": [
+    {
+      "url": "{env:WEBHOOK_URL}",
+      "headers": {
+        "Authorization": "Bearer {env:WEBHOOK_TOKEN}",
+        "X-API-Key": "{env:API_KEY}"
+      }
+    }
+  ]
+}
+```
+
+This works in both the global config and the project config.
 
 ### Multiple targets
 
@@ -134,7 +163,7 @@ bun run test-server.ts 9000
 
 ### Point the plugin at it
 
-Add a target to your `event-push.json` (the catch-all form with no `events` filter is most useful for testing):
+Add a target to your `~/.config/opencode/event-push.json` (the catch-all form with no `events` filter is most useful for testing):
 
 ```json
 {
@@ -183,7 +212,7 @@ On a failed request the plugin retries with exponential backoff (500ms, 1000ms, 
 
 ## Local plugin usage
 
-If you prefer to use this as a local file plugin rather than via npm, drop `src/index.ts` into `.opencode/plugins/` and place `event-push.json` in the same `.opencode/plugins/` directory.
+If you prefer to use this as a local file plugin rather than via npm, drop `src/index.ts` into `.opencode/plugins/`. The global config is still read from `~/.config/opencode/event-push.json` and the project config from `event-push.json` in the project root.
 
 ## License
 

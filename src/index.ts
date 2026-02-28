@@ -1,9 +1,7 @@
 import { readFileSync } from "node:fs"
-import { dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
+import { join } from "node:path"
+import { homedir } from "node:os"
 import type { Plugin } from "@opencode-ai/plugin"
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ── Config types ──────────────────────────────────────────────────────────────
 
@@ -32,17 +30,47 @@ interface PluginConfig {
   targets: TargetConfig[]
 }
 
+// ── Variable substitution ─────────────────────────────────────────────────────
+
+/**
+ * Recursively walk any JSON-parsed value and replace all occurrences of
+ * `{env:VAR_NAME}` in string leaves with the value of `process.env.VAR_NAME`.
+ * Unset variables are replaced with an empty string, matching OpenCode's own
+ * behaviour for `{env:...}` in opencode.json.
+ */
+export function interpolate<T>(value: T): T {
+  if (typeof value === "string") {
+    return value.replace(/\{env:([^}]+)\}/g, (_, name: string) => {
+      return process.env[name] ?? ""
+    }) as unknown as T
+  }
+  if (Array.isArray(value)) {
+    return value.map(interpolate) as unknown as T
+  }
+  if (value !== null && typeof value === "object") {
+    const result: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      result[k] = interpolate(v)
+    }
+    return result as unknown as T
+  }
+  return value
+}
+
 // ── Config loading ────────────────────────────────────────────────────────────
 
-function loadConfig(): PluginConfig {
-  // The config file lives alongside the plugin (one level up from src/)
-  const configPath = join(__dirname, "..", "event-push.json")
+/**
+ * Read and parse a single event-push.json file.
+ * Returns `null` when the file does not exist.
+ * Returns `{ targets: [] }` on any other error or malformed content.
+ */
+export function readConfigFile(filePath: string): PluginConfig | null {
   try {
-    const raw = readFileSync(configPath, "utf-8")
-    const parsed = JSON.parse(raw) as PluginConfig
+    const raw = readFileSync(filePath, "utf-8")
+    const parsed = interpolate(JSON.parse(raw) as PluginConfig)
     if (!Array.isArray(parsed.targets)) {
       console.warn(
-        "[opencode-event-push] event-push.json is missing a 'targets' array — plugin is a no-op",
+        `[opencode-event-push] ${filePath} is missing a 'targets' array — skipping`,
       )
       return { targets: [] }
     }
@@ -52,16 +80,44 @@ function loadConfig(): PluginConfig {
       err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT"
     if (!isNotFound) {
       console.warn(
-        `[opencode-event-push] Could not read event-push.json: ${String(err)}`,
+        `[opencode-event-push] Could not read ${filePath}: ${String(err)}`,
       )
     }
-    return { targets: [] }
+    return null
   }
+}
+
+/**
+ * Load and merge plugin configuration from all supported locations.
+ *
+ * Config is read from two places (mirroring OpenCode's own precedence model):
+ *   1. Global:  ~/.config/opencode/event-push.json
+ *   2. Project: <directory>/event-push.json  (the session's working directory)
+ *
+ * Both files are optional. When both exist their `targets` arrays are
+ * concatenated — project targets are appended after global targets.
+ * This follows OpenCode's "merge, not replace" convention for config files.
+ *
+ * Both files support `{env:VAR_NAME}` substitution in any string value.
+ */
+export function loadConfig(directory?: string): PluginConfig {
+  const globalPath = join(homedir(), ".config", "opencode", "event-push.json")
+  const globalConfig = readConfigFile(globalPath)
+
+  const projectPath = directory ? join(directory, "event-push.json") : null
+  const projectConfig = projectPath ? readConfigFile(projectPath) : null
+
+  const targets = [
+    ...(globalConfig?.targets ?? []),
+    ...(projectConfig?.targets ?? []),
+  ]
+
+  return { targets }
 }
 
 // ── HTTP push with retry ──────────────────────────────────────────────────────
 
-async function pushToTarget(
+export async function pushToTarget(
   target: TargetConfig,
   payload: unknown,
   log: (msg: string, extra?: Record<string, unknown>) => Promise<void>,
@@ -100,8 +156,8 @@ async function pushToTarget(
 
 // ── Plugin ────────────────────────────────────────────────────────────────────
 
-export const EventPushPlugin: Plugin = async ({ client }) => {
-  const { targets } = loadConfig()
+export const EventPushPlugin: Plugin = async ({ client, directory }) => {
+  const { targets } = loadConfig(directory)
 
   if (targets.length === 0) return {}
 

@@ -2,7 +2,7 @@
   "targets": [
     { "url": "http://localhost:34567" },
     {
-      "url": "https://webhook.example.com/opencode",
+      "url": "{env:WEBHOOK_URL}",
       "events": [
         "session.created",
         "session.idle",
@@ -13,7 +13,7 @@
         "delayMs": 500
       },
       "headers": {
-        "Authorization": "Bearer your-secret-token"
+        "Authorization": "Bearer {env:WEBHOOK_TOKEN}"
       }
     },
     {
@@ -23,7 +23,7 @@
         "file.edited"
       ],
       "headers": {
-        "X-API-Key": "your-api-key"
+        "X-API-Key": "{env:LOGGING_API_KEY}"
       }
     }
   ]
