@@ -1,6 +1,6 @@
 {
   "name": "@dragonwize/opencode-event-push",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "OpenCode plugin that forwards a configurable set of events to one or more URLs via HTTP POST.",
   "keywords": [
     "opencode",
